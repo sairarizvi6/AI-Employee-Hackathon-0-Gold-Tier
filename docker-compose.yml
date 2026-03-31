@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Odoo
+  db:
+    image: postgres:15
+    container_name: odoo_db
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    networks:
+      - odoo-network
+    restart: unless-stopped
+
+  # Odoo Community Edition 19
+  odoo:
+    image: odoo:19
+    container_name: odoo_app
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    environment:
+      - HOST=db
+      - USER=odoo
+      - PASSWORD=odoo
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./odoo-config:/etc/odoo
+      - ./odoo-addons:/mnt/extra-addons
+    networks:
+      - odoo-network
+    restart: unless-stopped
+    command: -- --dev=all
+
+volumes:
+  odoo-db-data:
+  odoo-web-data:
+
+networks:
+  odoo-network:
+    driver: bridge
